@@ -1,0 +1,24 @@
+language: generic
+
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t pasewka/multi-docker-test_dev -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true pasewka/multi-docker-test_dev npm test
+
+after_success:
+  - docker build -t pasewka/multi-docker-test_api ./client
+  - docker build -t pasewka/multi-docker-test_client ./client
+  - docker build -t pasewka/multi-docker-test_nginx ./client
+  - docker build -t pasewka/multi-docker-test_worker ./client
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push pasewka/multi-docker-test_api
+  - docker push pasewka/multi-docker-test_client
+  - docker push pasewka/multi-docker-test_nginx
+  - docker push pasewka/multi-docker-test_worker
